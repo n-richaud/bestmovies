@@ -10,4 +10,17 @@ namespace AppBundle\Repository;
  */
 class VoteRepository extends \Doctrine\ORM\EntityRepository
 {
+	public function getMovieRank($order){
+
+		$conn = $this->_em->getConnection();
+        $statement= $conn->prepare( "SELECT       `movie_id`
+    FROM     `Vote`
+    GROUP BY `movie_id`
+    ORDER BY COUNT(*) :id_account
+    LIMIT    1;");
+        $statement->bindValue('id_account', $order);
+        $statement->execute();
+
+        return $statement->fetchAll();
+	}
 }

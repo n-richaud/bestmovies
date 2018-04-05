@@ -2,6 +2,8 @@
 
 namespace AppBundle\Repository;
 
+use Doctrine\ORM\EntityRepository;
+use AppBundle\Entity\User;
 /**
  * UserRepository
  *
@@ -10,4 +12,9 @@ namespace AppBundle\Repository;
  */
 class UserRepository extends \Doctrine\ORM\EntityRepository
 {
+	public function creatUser($data){
+
+
+	}
+
 }

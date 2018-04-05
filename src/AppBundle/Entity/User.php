@@ -3,6 +3,7 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * User
@@ -50,12 +51,23 @@ class User
      */
     private $createdAt;
 
+
+
+    /**
+     * @var ArrayCollection 
+     * @ORM\ManyToMany(targetEntity="AppBundle\Entity\Movie", cascade={"persist"})
+     * @ORM\JoinTable(name="Vote",
+     *   joinColumns={@ORM\JoinColumn(name="User_user_id", referencedColumnName="id")},
+     *   inverseJoinColumns={@ORM\JoinColumn(name="Movie_id", referencedColumnName="id")})
+     */
+    private $votes;
+
     /**
      * Gets triggered only on insert
 
      * @ORM\PrePersist
      */
-    public function onPrePersist
+    public function onPrePersist()
     {
         $this->createdAt = new \DateTime("now");
     }
