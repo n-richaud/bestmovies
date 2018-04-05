@@ -32,14 +32,16 @@ class ApiController extends Controller
     {
         $content = $request->getContent();
         $content_decoded = json_decode($content,true) ;
+
         $payload = $content_decoded['payload'] ;
         $email = $payload['email'];
+        $birthDate = $payload['birthDate'];
         $entityManager = $this->getDoctrine()->getManager();
         $userWithEmail = $entityManager->getRepository('AppBundle:User')->findByEmail($email);
         if (count($userWithEmail)>=1) {
             throw new \Exception('Already an user with this email');
         }
-        $birthDateConverted = \DateTime::createFromFormat('d/m/Y', $payload['birthDate']);
+        $birthDateConverted = \DateTime::createFromFormat('d/m/Y', $birthDate);
         
         $user = new User;
         $user->setLogin($payload['login']);
@@ -57,7 +59,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/user/{user_id}/vote/{movie_id}",requirements={"user_id"="\d+","movie_id"="\d+"}, name="user_vote")
+     * @Route("/user/{user_id}/vote/{movie_id}",requirements={"user_id"="\d+"}, name="user_vote")
      * @Method({"POST"})
      */
     public function PostUserVoteAction($user_id, $movie_id, SerializerInterface $serializer)
@@ -72,7 +74,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/user/{user_id}/vote/{movie_id}",requirements={"user_id"="\d+","movie_id"="\d+"}, name="user_retract")
+     * @Route("/user/{user_id}/vote/{movie_id}",requirements={"user_id"="\d+"}, name="user_retract")
      * @Method({"POST"})
      */
     public function DeleteUserVoteAction($user_id, $movie_id, SerializerInterface $serializer)
@@ -102,7 +104,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/movies/{movie_id}/votes/",requirements={"movie_id"="\d+"}, name="film_votes")
+     * @Route("/movies/{movie_id}/votes/", name="film_votes")
      * @Method({"GET"})
      */
     public function GetFilmVotesAction($movie_id, SerializerInterface $serializer)
@@ -117,7 +119,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/movies/{movie_id}/rank/{order}",requirements={"movie_id"="\d+","order"="\d+"}, defaults={"order" = "ASC"},name="film_votes" )
+     * @Route("/movies/{movie_id}/rank/{order}",requirements={"order"="\d+"}, defaults={"order" = "ASC"},name="film_votes" )
      * @Method({"GET"})
      */
     public function GetFilmRankAction($user_id, $movie_id, SerializerInterface $serializer)
