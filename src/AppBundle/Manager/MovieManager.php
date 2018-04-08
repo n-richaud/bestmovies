@@ -21,6 +21,8 @@ class MovieManager{
     	$this->entityManager = $entityManager;
     }
 
+    
+
     public function getUserVotedFor($movie_id){
     	$movie = $this->entityManager->getRepository('AppBundle:Movie')->findOneById($movie_id);
 

@@ -54,7 +54,10 @@ class OmdbapiClient
             if ($movieData['Response']=="False") {
                throw new \Exception('movie not found');
             }
-    		$this->cache->set(self::CACHE_KEY.'$idMovie', $movieData, 2592000); // cache of one month
+            else{
+                $this->cache->set(self::CACHE_KEY.'$idMovie', $movieData, 2592000); // cache of one month
+            }
+    		
 
     	//}
     	

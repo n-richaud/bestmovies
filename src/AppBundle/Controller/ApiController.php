@@ -145,7 +145,6 @@ class ApiController extends Controller
      */
     public function GetFilmVotesAction($movie_id, SerializerInterface $serializer){
         
-
         try{
            $usersVotedFor = $this->get('manager.movie')->getUserVotedFor($movie_id);
         } 
@@ -173,6 +172,7 @@ class ApiController extends Controller
      * @Method({"GET"})
      */
     public function GetFilmRankAction(SerializerInterface $serializer){
+
         $entityManager = $this->getDoctrine()->getManager();
         $bestMovie = $entityManager->getRepository('AppBundle:Movie')->getMovieBest();
         $data = ['movie_id' => $bestMovie ];
