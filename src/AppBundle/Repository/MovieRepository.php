@@ -10,4 +10,18 @@ namespace AppBundle\Repository;
  */
 class MovieRepository extends \Doctrine\ORM\EntityRepository
 {
+	public function getMovieBest(){
+
+		$conn = $this->_em->getConnection();
+        $sql = "SELECT `movie_id`
+        FROM     `Vote`
+        GROUP BY `movie_id`
+        ORDER BY COUNT(*) ASC
+        LIMIT    1;";
+        $statement= $conn->prepare($sql);
+       
+        $statement->execute();
+
+        return $statement->fetchAll();
+	}
 }

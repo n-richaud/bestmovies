@@ -37,28 +37,27 @@ class OmdbapiClient
      *
      * @return array
      */
-    public function getMoviesmetadata( $idMovie)
+    public function getMoviesMetadata($idMovie)
     {
-    	if( !$this->cache->has(self::CACHE_KEY.'$idMovie')){
+    	/*if( !$this->cache->has(self::CACHE_KEY.'$idMovie')){*/
 
     		//here we should use http://docs.php-http.org/ interface , officialy supported by Symfony Flex
     		$url = self::BASE_URL."/?i=".$idMovie."&apikey=".self::API_KEY;
     		$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, 'www.someapi.com?param1=A&param2=B');
+			curl_setopt($ch, CURLOPT_URL, $url);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-type: application/json')); 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
 			$response = curl_exec($ch);
-			var_dump($url);
+			var_dump($ch);
 			$movieData = json_decode($response);
-
+            if ($movieData['Response']=="False") {
+               throw new \Exception('movie not found');
+            }
     		$this->cache->set(self::CACHE_KEY.'$idMovie', $movieData, 2592000); // cache of one month
 
-    	}
-    	throw new NotFoundHttpException(
-                        'Movies not found',
-                        $e
-                    );
+    	//}
+    	
     	$movieData = $this->cache->get(self::CACHE_KEY.'$idMovie');
 
     	return $movieData;

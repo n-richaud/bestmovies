@@ -16,8 +16,7 @@ class ApiController extends Controller
      * @Route("/", name="homepage")
      * @Method({"GET", "POST"})
      */
-    public function indexAction(Request $request, SerializerInterface $serializer)
-    {
+    public function indexAction(Request $request, SerializerInterface $serializer){
         // replace this example code with whatever you need
         return $this->render('default/index.html.twig', [
             'base_dir'  =>  realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
@@ -25,31 +24,28 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/user/create", name="user_create")
+     * @Route("/user", name="user_create")
      * @Method({"POST"})
      */
-    public function userCreateAction(Request $request, SerializerInterface $serializer)
-    {
+    public function userCreateAction(Request $request, SerializerInterface $serializer){
+
         $content = $request->getContent();
         $content_decoded = json_decode($content,true) ;
-
         $payload = $content_decoded['payload'] ;
-        $email = $payload['email'];
-        $birthDate = $payload['birthDate'];
-        $entityManager = $this->getDoctrine()->getManager();
-        $userWithEmail = $entityManager->getRepository('AppBundle:User')->findByEmail($email);
-        if (count($userWithEmail)>=1) {
-            throw new \Exception('Already an user with this email');
+
+        try{
+            $user_id = $this->get('manager.user')->createUser($payload);
+        } 
+        catch(\Exception $e){
+            $data = ['Response'=>'false','error'=>$e->getMessage()];
+            $serializedData =  $this->get('serializer')->serialize($data, 'json');
+            $response = new Response($serializedData);
+            $response->setStatusCode(500);
+            $response->headers->set('Content-Type', 'application/problem+json'); // https://datatracker.ietf.org/doc/rfc7807/
+            return $response; 
         }
-        $birthDateConverted = \DateTime::createFromFormat('d/m/Y', $birthDate);
         
-        $user = new User;
-        $user->setLogin($payload['login']);
-        $user->setEmail($email);
-        $user->setBirthDate($birthDateConverted);
-        $entityManager->persist($user);
-        $entityManager->flush();
-        $data = $payload;
+        $data = ['success'=>'user created !' , 'payload' => ['user_id'=>$user_id]];
         $serializedData =  $this->get('serializer')->serialize($data, 'json');
 
         $response = new Response($serializedData);
@@ -62,12 +58,25 @@ class ApiController extends Controller
      * @Route("/user/{user_id}/vote/{movie_id}",requirements={"user_id"="\d+"}, name="user_vote")
      * @Method({"POST"})
      */
-    public function PostUserVoteAction($user_id, $movie_id, SerializerInterface $serializer)
-    {
-        //$data = ['movie_id' => $movie_id ,'user_id' => $user_id];
+    public function PostUserVoteAction($user_id, $movie_id, SerializerInterface $serializer){
+
+        try{
+            $this->get('manager.user')->addVote($user_id,$movie_id);
+        } 
+        catch(\Exception $e){
+            $data = ['Response'=>'false','error'=>$e->getMessage()];
+            $serializedData =  $this->get('serializer')->serialize($data, 'json');
+            $response = new Response($serializedData);
+            $response->setStatusCode(500);
+            $response->headers->set('Content-Type', 'application/problem+json'); // https://datatracker.ietf.org/doc/rfc7807/
+            return $response; 
+        }
+       
+
+        $data = ['success'=>'vote added !' , 'payload' => ['user_id'=>$user_id,'movies_id'=>$movie_id] ];
         $serializedData =  $this->get('serializer')->serialize($data, 'json');
 
-        $response = new Response($data);
+        $response = new Response($serializedData);
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
@@ -75,12 +84,25 @@ class ApiController extends Controller
 
     /**
      * @Route("/user/{user_id}/vote/{movie_id}",requirements={"user_id"="\d+"}, name="user_retract")
-     * @Method({"POST"})
+     * @Method({"DELETE"})
      */
-    public function DeleteUserVoteAction($user_id, $movie_id, SerializerInterface $serializer)
-    {
-        $data = ['movie_id' => $movie_id ,'user_id' => $user_id];
-        //$data =  $this->get('serializer')->serialize($data, 'json');
+    public function DeleteUserVoteAction($user_id, $movie_id, SerializerInterface $serializer){
+        
+        try{
+            $this->get('manager.user')->deleteVote($user_id,$movie_id);
+        } 
+        catch(\Exception $e){
+            $data = ['Response'=>'false','error'=>$e->getMessage()];
+            $serializedData =  $this->get('serializer')->serialize($data, 'json');
+            $response = new Response($serializedData);
+            $response->setStatusCode(500);
+            $response->headers->set('Content-Type', 'application/problem+json'); // https://datatracker.ietf.org/doc/rfc7807/
+            return $response; 
+        }
+       
+
+        $data = ['success'=>'vote deleted !' , 'payload' => ['user_id'=>$user_id] ,'movies_id'=>$movie_id];
+        $serializedData =  $this->get('serializer')->serialize($data, 'json');
 
         $response = new Response($serializedData);
         $response->headers->set('Content-Type', 'application/json');
@@ -92,10 +114,53 @@ class ApiController extends Controller
      * @Route("/user/{user_id}/votes/",requirements={"user_id"="\d+"}, name="user_votes")
      * @Method({"GET"})
      */
-    public function GetUserVotesAction($user_id, SerializerInterface $serializer)
-    {
-        $data = ['$user_id'  =>  $user_id];
-        $serializedData =  $this->get('serializer')->serialize($user_id, 'json');
+    public function GetUserVotesAction($user_id, SerializerInterface $serializer){
+
+        try{
+           $moviesChoosen = $this->get('manager.user')->getUserVotes($user_id);
+        } 
+        catch(\Exception $e){
+            $data = ['Response'=>'false','error'=>$e->getMessage()];
+            $serializedData =  $this->get('serializer')->serialize($data, 'json');
+            $response = new Response($serializedData);
+            $response->setStatusCode(500);
+            $response->headers->set('Content-Type', 'application/problem+json'); // https://datatracker.ietf.org/doc/rfc7807/
+            return $response; 
+        }
+       
+
+        $data = ['success'=>'votes for $user_id ' , 'payload' => ['user_id'=>$user_id] ,'movies Choosen'=>$moviesChoosen];
+        $serializedData =  $this->get('serializer')->serialize($data, 'json');
+
+        $response = new Response($serializedData);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+        
+    }
+
+    /**
+     * @Route("/movie/{movie_id}/votes/", name="film_votes")
+     * @Method({"GET"})
+     */
+    public function GetFilmVotesAction($movie_id, SerializerInterface $serializer){
+        
+
+        try{
+           $usersVotedFor = $this->get('manager.movie')->getUserVotedFor($movie_id);
+        } 
+        catch(\Exception $e){
+            $data = ['Response'=>'false','error'=>$e->getMessage()];
+            $serializedData =  $this->get('serializer')->serialize($data, 'json');
+            $response = new Response($serializedData);
+            $response->setStatusCode(500);
+            $response->headers->set('Content-Type', 'application/problem+json'); // https://datatracker.ietf.org/doc/rfc7807/
+            return $response; 
+        }
+       
+
+        $data = ['success'=>'votes for $movie_id ' , 'payload' => ['movie_id'=>$movie_id] ,'user'=>$usersVotedFor];
+        $serializedData =  $this->get('serializer')->serialize($data, 'json');
 
         $response = new Response($serializedData);
         $response->headers->set('Content-Type', 'application/json');
@@ -104,27 +169,13 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/movies/{movie_id}/votes/", name="film_votes")
+     * @Route("/movies/best",name="best_film" )
      * @Method({"GET"})
      */
-    public function GetFilmVotesAction($movie_id, SerializerInterface $serializer)
-    {
-        $data = ['$movie_id'  =>  $movie_id];
-        $serializedData =  $this->get('serializer')->serialize($movie_id, 'json');
-
-        $response = new Response($serializedData);
-        $response->headers->set('Content-Type', 'application/json');
-
-        return $response;
-    }
-
-    /**
-     * @Route("/movies/{movie_id}/rank/{order}",requirements={"order"="\d+"}, defaults={"order" = "ASC"},name="film_votes" )
-     * @Method({"GET"})
-     */
-    public function GetFilmRankAction($user_id, $movie_id, SerializerInterface $serializer)
-    {
-        $data = ['movie_id' => $movie_id ,'user_id' => $user_id];
+    public function GetFilmRankAction(SerializerInterface $serializer){
+        $entityManager = $this->getDoctrine()->getManager();
+        $bestMovie = $entityManager->getRepository('AppBundle:Movie')->getMovieBest();
+        $data = ['movie_id' => $bestMovie ];
         $serializedData =  $this->get('serializer')->serialize($data, 'json');
 
         $response = new Response($serializedData);
@@ -137,10 +188,9 @@ class ApiController extends Controller
      * @Route("/debug",name="debug" )
      * @Method({"GET"})
      */
-    public function DebugAction( SerializerInterface $serializer)
-    {
+    public function DebugAction( SerializerInterface $serializer){
         $OmdbapiClient = $this->get("client.Omdbapi");
-        $data = $OmdbapiClient->getMoviesmetadata('tt0371724');
+        $data = $OmdbapiClient->getMoviesMetadata('tt0371724');
         $serializedData =  $this->get('serializer')->serialize($data, 'json');
 
         $response = new Response($serializedData);

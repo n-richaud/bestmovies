@@ -46,7 +46,6 @@ class Movie
      * @var ArrayCollection 
      * @ORM\ManyToMany(targetEntity="AppBundle\Entity\User", cascade={"persist"})
      * @ORM\JoinTable(name="Vote")
-     */
     private $users;
 
     /**

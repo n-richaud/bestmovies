@@ -35,3 +35,15 @@ services:
 
     cache.cache:
         class: Symfony\Component\Cache\Simple\FilesystemCache;
+
+    manager.user:
+        class: AppBundle\Manager\UserManager
+        public: true
+        arguments:
+            - "@doctrine.orm.entity_manager"
+
+    manager.movie:
+        class: AppBundle\Manager\MovieManager
+        public: true
+        arguments:
+            - "@doctrine.orm.entity_manager"
