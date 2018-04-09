@@ -41,9 +41,11 @@ services:
         public: true
         arguments:
             - "@doctrine.orm.entity_manager"
+            - "@manager.movie"
 
     manager.movie:
         class: AppBundle\Manager\MovieManager
         public: true
         arguments:
             - "@doctrine.orm.entity_manager"
+            - "@client.Omdbapi"

@@ -10,9 +10,16 @@ class UserManager
      */
     protected $entityManager;
 
-    public function __construct( $entityManager){
+    /**
+     * @var EntityManager
+     */
+    protected $movieManager;
+
+    public function __construct( $entityManager, $movieManager){
 
     	$this->entityManager = $entityManager;
+        $this->movieManager = $movieManager;
+
     }
 
 	public function addVote($user_id,$movie_id){
@@ -26,6 +33,7 @@ class UserManager
         	throw new \Exception('User can\'t add more vote');
         }
 
+        $movie_id =  $this->movieManager->CheckMovies($movie_id);
         
         $movie = $this->entityManager->getReference("AppBundle\Entity\Movie", $movie_id);
         $user->addVote($movie);

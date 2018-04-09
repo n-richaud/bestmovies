@@ -49,8 +49,7 @@ class OmdbapiClient
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
 			$response = curl_exec($ch);
-			var_dump($ch);
-			$movieData = json_decode($response);
+			$movieData = json_decode($response,true);
             if ($movieData['Response']=="False") {
                throw new \Exception('movie not found');
             }
